@@ -1,27 +1,124 @@
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, Sparkles } from 'lucide-react';
 import useStore from '../store/useStore';
-import { NODE_TYPES_CONFIG, RANKING_CONFIG, CONTROL_STATUS_CONFIG } from '../nodes/nodeConfig';
+import { NODE_TYPES_CONFIG, RANKING_CONFIG, CONTROL_STATUS_CONFIG, RELATIONSHIP_LABELS } from '../nodes/nodeConfig';
 
 export default function PropertiesPanel() {
   const selectedNode = useStore((s) => s.selectedNode);
-  const updateNode = useStore((s) => s.updateNode);
-  const deleteNode = useStore((s) => s.deleteNode);
+  const selectedEdge = useStore((s) => s.selectedEdge);
+  const updateNode   = useStore((s) => s.updateNode);
+  const deleteNode   = useStore((s) => s.deleteNode);
+  const updateEdge   = useStore((s) => s.updateEdge);
+  const deleteEdge   = useStore((s) => s.deleteEdge);
   const setSelectedNode = useStore((s) => s.setSelectedNode);
-  // Keep panel in sync with live node data
+  const setSelectedEdge = useStore((s) => s.setSelectedEdge);
   const nodes = useStore((s) => s.nodes);
-  const liveNode = nodes.find((n) => n.id === selectedNode?.id);
+  const edges = useStore((s) => s.edges);
 
-  if (!liveNode) {
+  // Always read live data from the store
+  const liveNode = nodes.find((n) => n.id === selectedNode?.id);
+  const liveEdge = edges.find((e) => e.id === selectedEdge?.id);
+
+  // ── Empty state ─────────────────────────────────────────────────────────────
+  if (!liveNode && !liveEdge) {
     return (
       <aside className="w-64 bg-gray-900 border-l border-gray-700 flex flex-col items-center justify-center p-6 shrink-0">
         <div className="text-gray-600 text-center">
           <div className="text-4xl mb-3">🖱️</div>
-          <p className="text-sm text-gray-500">Click a node to edit its properties</p>
+          <p className="text-sm text-gray-500">Click a node or edge to edit its properties</p>
         </div>
       </aside>
     );
   }
 
+  // ── Edge panel ──────────────────────────────────────────────────────────────
+  if (liveEdge) {
+    const sourceNode = nodes.find((n) => n.id === liveEdge.source);
+    const targetNode = nodes.find((n) => n.id === liveEdge.target);
+    const sourceConfig = sourceNode ? NODE_TYPES_CONFIG[sourceNode.type] : null;
+    const targetConfig = targetNode ? NODE_TYPES_CONFIG[targetNode.type] : null;
+
+    const suggestedLabel =
+      RELATIONSHIP_LABELS[`${sourceNode?.type}->${targetNode?.type}`] ||
+      RELATIONSHIP_LABELS.default;
+
+    const currentLabel = liveEdge.data?.label || '';
+
+    return (
+      <aside className="w-64 bg-gray-900 border-l border-gray-700 flex flex-col shrink-0 overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 py-3 bg-gray-800 border-b border-gray-700">
+          <span className="text-lg">🔗</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Edge</span>
+            <span className="text-xs font-semibold text-gray-200 truncate">Connection</span>
+          </div>
+          <button
+            onClick={() => setSelectedEdge(null)}
+            className="ml-auto text-white opacity-50 hover:opacity-100"
+          >
+            <X size={14} />
+          </button>
+        </div>
+
+        {/* Fields */}
+        <div className="flex flex-col gap-4 p-4 flex-1">
+          {/* Source → Target */}
+          <Field label="Connection">
+            <div className="flex flex-col gap-1">
+              <div className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg ${sourceConfig?.color || 'bg-gray-700'}`}>
+                <span>{sourceConfig?.icon || '?'}</span>
+                <span className={`font-semibold truncate ${sourceConfig?.text || 'text-white'}`}>
+                  {sourceNode?.data?.title || sourceConfig?.label || 'Unknown'}
+                </span>
+              </div>
+              <div className="text-center text-gray-500 text-[10px] py-0.5">↓</div>
+              <div className={`flex items-center gap-2 text-xs px-2 py-1.5 rounded-lg ${targetConfig?.color || 'bg-gray-700'}`}>
+                <span>{targetConfig?.icon || '?'}</span>
+                <span className={`font-semibold truncate ${targetConfig?.text || 'text-white'}`}>
+                  {targetNode?.data?.title || targetConfig?.label || 'Unknown'}
+                </span>
+              </div>
+            </div>
+          </Field>
+
+          {/* Label */}
+          <Field label="Relationship Label">
+            <div className="flex gap-1.5">
+              <input
+                className="input flex-1"
+                value={currentLabel}
+                onChange={(e) => updateEdge(liveEdge.id, { label: e.target.value })}
+                placeholder="e.g. uses, exploits..."
+              />
+              <button
+                title={`Auto-suggest: "${suggestedLabel}"`}
+                onClick={() => updateEdge(liveEdge.id, { label: suggestedLabel })}
+                className="px-2 py-1 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-indigo-100 border border-indigo-500 transition-colors"
+              >
+                <Sparkles size={13} />
+              </button>
+            </div>
+            <p className="text-[10px] text-gray-500 mt-0.5">
+              ✨ Suggested: <span className="text-indigo-400 font-medium">"{suggestedLabel}"</span>
+            </p>
+          </Field>
+        </div>
+
+        {/* Delete */}
+        <div className="p-4 border-t border-gray-700">
+          <button
+            onClick={() => deleteEdge(liveEdge.id)}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-red-900 hover:bg-red-700 text-red-200 text-sm font-semibold transition-colors"
+          >
+            <Trash2 size={14} />
+            Delete Edge
+          </button>
+        </div>
+      </aside>
+    );
+  }
+
+  // ── Node panel ──────────────────────────────────────────────────────────────
   const { type, data } = liveNode;
   const config = NODE_TYPES_CONFIG[type];
 

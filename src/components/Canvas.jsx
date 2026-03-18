@@ -4,7 +4,6 @@ import {
   Background,
   Controls,
   MiniMap,
-  addEdge,
   useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -29,8 +28,18 @@ const MINIMAP_COLORS = {
 };
 
 export default function Canvas() {
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, addNode, setSelectedNode } =
-    useStore();
+  const {
+    nodes,
+    edges,
+    onNodesChange,
+    onEdgesChange,
+    onConnect,
+    addNode,
+    setSelectedNode,
+    setSelectedEdge,
+    saveHistoryForDrag,
+  } = useStore();
+
   const reactFlowWrapper = useRef(null);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -63,7 +72,20 @@ export default function Canvas() {
 
   const onPaneClick = useCallback(() => {
     setSelectedNode(null);
-  }, [setSelectedNode]);
+    setSelectedEdge(null);
+  }, [setSelectedNode, setSelectedEdge]);
+
+  const onEdgeClick = useCallback(
+    (_, edge) => {
+      setSelectedEdge(edge);
+    },
+    [setSelectedEdge]
+  );
+
+  // Save history snapshot before a drag so undo restores pre-drag positions
+  const onNodeDragStart = useCallback(() => {
+    saveHistoryForDrag();
+  }, [saveHistoryForDrag]);
 
   return (
     <div ref={reactFlowWrapper} className="flex-1 bg-gray-950">
@@ -76,6 +98,8 @@ export default function Canvas() {
         onDrop={onDrop}
         onDragOver={onDragOver}
         onPaneClick={onPaneClick}
+        onEdgeClick={onEdgeClick}
+        onNodeDragStart={onNodeDragStart}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{

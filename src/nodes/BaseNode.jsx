@@ -22,7 +22,7 @@ export default function BaseNode({ id, data, type, selected }) {
         relative min-w-[160px] max-w-[220px] rounded-xl border-2 shadow-lg cursor-pointer
         transition-all duration-150
         ${config.border}
-        ${selected ? 'ring-2 ring-white ring-offset-1 scale-105' : 'hover:scale-102'}
+        ${selected ? 'ring-2 ring-white ring-offset-1 scale-105' : 'hover:scale-105'}
         ${config.color}
       `}
     >

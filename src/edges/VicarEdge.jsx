@@ -1,8 +1,4 @@
-import { BaseEdge, EdgeLabelRenderer, getStraightPath, getBezierPath } from '@xyflow/react';
-
-const RELATIONSHIP_LABELS = {
-  default: 'relates to',
-};
+import { BaseEdge, EdgeLabelRenderer, getBezierPath } from '@xyflow/react';
 
 export default function VicarEdge({
   id,
@@ -11,6 +7,7 @@ export default function VicarEdge({
   data,
   markerEnd,
   style,
+  selected,
 }) {
   const [edgePath, labelX, labelY] = getBezierPath({
     sourceX, sourceY, sourcePosition,
@@ -25,7 +22,11 @@ export default function VicarEdge({
         id={id}
         path={edgePath}
         markerEnd={markerEnd}
-        style={{ stroke: '#6b7280', strokeWidth: 2, ...style }}
+        style={{
+          stroke: selected ? '#818cf8' : '#6b7280',
+          strokeWidth: selected ? 2.5 : 2,
+          ...style,
+        }}
       />
       {label && (
         <EdgeLabelRenderer>
@@ -35,7 +36,11 @@ export default function VicarEdge({
               transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
               pointerEvents: 'all',
             }}
-            className="bg-gray-800 text-gray-100 text-[10px] font-medium px-2 py-0.5 rounded-full border border-gray-600 shadow nodrag nopan"
+            className={`text-[10px] font-medium px-2 py-0.5 rounded-full border shadow nodrag nopan ${
+              selected
+                ? 'bg-indigo-900 text-indigo-100 border-indigo-500'
+                : 'bg-gray-800 text-gray-100 border-gray-600'
+            }`}
           >
             {label}
           </div>
