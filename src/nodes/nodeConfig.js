@@ -65,12 +65,33 @@ export const NODE_TYPES_CONFIG = {
     description: 'Composite VICAR threat with ranking',
     defaultData: { title: 'Threat', description: '', ranking: 'medium', notes: '' },
   },
+  trustBoundary: {
+    label: 'Trust Boundary',
+    letter: 'Z',
+    color: 'bg-gray-800',
+    border: 'border-dashed border-gray-500',
+    text: 'text-gray-200',
+    badge: 'bg-gray-900',
+    icon: '🔒',
+    description: 'Zone — DMZ, Internal, Cloud...',
+    isZone: true,
+    defaultData: { title: '', zoneType: 'internal' },
+  },
 };
 
 export const RANKING_CONFIG = {
   low: { label: 'Low', color: 'bg-green-500', text: 'text-white' },
   medium: { label: 'Medium', color: 'bg-yellow-400', text: 'text-gray-900' },
   high: { label: 'High', color: 'bg-red-500', text: 'text-white' },
+};
+
+// Zone types for Trust Boundary nodes (inline styles to avoid Tailwind purging)
+export const ZONE_STYLES = {
+  external:   { border: '#ef4444', bg: 'rgba(127,29,29,0.15)',   text: '#f87171', label: 'External / Internet' },
+  dmz:        { border: '#eab308', bg: 'rgba(113,63,18,0.15)',   text: '#facc15', label: 'DMZ' },
+  internal:   { border: '#22c55e', bg: 'rgba(20,83,45,0.15)',    text: '#4ade80', label: 'Internal Network' },
+  cloud:      { border: '#3b82f6', bg: 'rgba(30,58,138,0.15)',   text: '#60a5fa', label: 'Cloud Infrastructure' },
+  thirdparty: { border: '#a855f7', bg: 'rgba(88,28,135,0.15)',   text: '#c084fc', label: 'Third Party' },
 };
 
 export const CONTROL_STATUS_CONFIG = {

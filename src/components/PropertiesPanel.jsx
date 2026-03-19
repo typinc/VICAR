@@ -1,6 +1,6 @@
 import { Trash2, X } from 'lucide-react';
 import useStore from '../store/useStore';
-import { NODE_TYPES_CONFIG, RANKING_CONFIG, CONTROL_STATUS_CONFIG } from '../nodes/nodeConfig';
+import { NODE_TYPES_CONFIG, RANKING_CONFIG, CONTROL_STATUS_CONFIG, ZONE_STYLES } from '../nodes/nodeConfig';
 
 export default function PropertiesPanel() {
   const selectedNode = useStore((s) => s.selectedNode);
@@ -261,6 +261,30 @@ export default function PropertiesPanel() {
               </select>
             </Field>
           </>
+        )}
+
+        {type === 'trustBoundary' && (
+          <Field label="Zone Type">
+            <div className="flex flex-col gap-1.5">
+              {Object.entries(ZONE_STYLES).map(([key, s]) => (
+                <button
+                  key={key}
+                  onClick={() => handleChange('zoneType', key)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs font-semibold transition-all ${
+                    data.zoneType === key
+                      ? 'border-gray-400 bg-gray-700 text-white'
+                      : 'border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-500'
+                  }`}
+                >
+                  <span
+                    className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
+                    style={{ background: s.border }}
+                  />
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </Field>
         )}
 
         {type === 'threat' && (

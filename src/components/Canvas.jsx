@@ -57,11 +57,16 @@ export default function Canvas() {
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
       const config = NODE_TYPES_CONFIG[type];
 
+      const isBoundary = type === 'trustBoundary';
       const newNode = {
         id: getId(),
         type,
         position,
         data: { ...config.defaultData },
+        ...(isBoundary && {
+          zIndex: -1,
+          style: { width: 360, height: 240 },
+        }),
       };
 
       addNode(newNode);
