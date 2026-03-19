@@ -11,11 +11,12 @@ export default function TrustBoundaryNode({ id, data, selected }) {
   const nodes = useStore((s) => s.nodes);
 
   const zone = data?.zoneType || DEFAULT_ZONE;
-  const style = ZONE_STYLES[zone] || ZONE_STYLES[DEFAULT_ZONE];
-  const label = data?.title || style.label;
+  const zoneStyle = ZONE_STYLES[zone] || ZONE_STYLES[DEFAULT_ZONE];
+  const label = data?.title || zoneStyle.label;
 
-  const handleClick = (e) => {
-    e.stopPropagation();
+  // No stopPropagation — React Flow needs the click to set `selected: true`
+  // which activates the NodeResizer handles
+  const handleClick = () => {
     const node = nodes.find((n) => n.id === id);
     setSelectedNode(node || null);
   };
@@ -26,37 +27,43 @@ export default function TrustBoundaryNode({ id, data, selected }) {
       style={{
         width: '100%',
         height: '100%',
-        background: style.bg,
-        border: `2px dashed ${selected ? '#fff' : style.border}`,
+        background: zoneStyle.bg,
+        border: `2px dashed ${selected ? '#ffffff99' : zoneStyle.border}`,
         borderRadius: '12px',
-        boxShadow: selected ? `0 0 0 2px ${style.border}` : 'none',
+        boxShadow: selected ? `0 0 0 2px ${zoneStyle.border}` : 'none',
         transition: 'border-color 0.15s, box-shadow 0.15s',
-        cursor: 'pointer',
+        cursor: 'grab',
         position: 'relative',
       }}
     >
-      {/* Resize handles */}
+      {/* Resize handles — visible only when selected */}
       <NodeResizer
         minWidth={MIN_WIDTH}
         minHeight={MIN_HEIGHT}
         isVisible={selected}
-        lineStyle={{ border: `1.5px solid ${style.border}` }}
-        handleStyle={{ background: style.border, border: 'none', width: 8, height: 8, borderRadius: 2 }}
+        lineStyle={{ border: `1.5px solid ${zoneStyle.border}` }}
+        handleStyle={{
+          background: zoneStyle.border,
+          border: 'none',
+          width: 10,
+          height: 10,
+          borderRadius: 3,
+        }}
       />
 
       {/* Zone label badge */}
       <div
         style={{
           position: 'absolute',
-          top: 8,
-          left: 12,
+          top: 10,
+          left: 14,
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          background: 'rgba(17,24,39,0.75)',
-          border: `1px solid ${style.border}`,
+          background: 'rgba(17,24,39,0.8)',
+          border: `1px solid ${zoneStyle.border}`,
           borderRadius: 6,
-          padding: '3px 8px',
+          padding: '4px 10px',
           backdropFilter: 'blur(4px)',
           userSelect: 'none',
           pointerEvents: 'none',
@@ -65,16 +72,35 @@ export default function TrustBoundaryNode({ id, data, selected }) {
         <span style={{ fontSize: 13 }}>🔒</span>
         <span
           style={{
-            color: style.text,
+            color: zoneStyle.text,
             fontSize: 11,
             fontWeight: 700,
-            letterSpacing: '0.04em',
+            letterSpacing: '0.05em',
             textTransform: 'uppercase',
           }}
         >
           {label}
         </span>
       </div>
+
+      {/* Subtle resize hint when not selected */}
+      {!selected && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 6,
+            right: 10,
+            color: zoneStyle.text,
+            fontSize: 9,
+            opacity: 0.35,
+            userSelect: 'none',
+            pointerEvents: 'none',
+            letterSpacing: '0.05em',
+          }}
+        >
+          click to resize
+        </div>
+      )}
     </div>
   );
 }

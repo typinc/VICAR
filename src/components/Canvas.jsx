@@ -63,10 +63,8 @@ export default function Canvas() {
         type,
         position,
         data: { ...config.defaultData },
-        ...(isBoundary && {
-          zIndex: -1,
-          style: { width: 360, height: 240 },
-        }),
+        // Trust boundaries get an explicit size so NodeResizer has something to start from
+        ...(isBoundary && { style: { width: 360, height: 240 } }),
       };
 
       addNode(newNode);
