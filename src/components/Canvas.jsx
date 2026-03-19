@@ -63,7 +63,9 @@ export default function Canvas() {
         type,
         position,
         data: { ...config.defaultData },
-        // Trust boundaries get an explicit size so NodeResizer has something to start from
+        // zIndex: 0 keeps trust boundaries below VICAR nodes (zIndex: 1) at all times,
+        // so VICAR nodes remain clickable when visually overlapping a zone.
+        zIndex: isBoundary ? 0 : 1,
         ...(isBoundary && { style: { width: 360, height: 240 } }),
       };
 

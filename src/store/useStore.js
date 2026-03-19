@@ -45,11 +45,7 @@ const useStore = create((set, get) => {
     // ── Node actions ─────────────────────────────────────────────────────────
     addNode: (node) => {
       saveHistory();
-      // Trust boundaries are prepended so they render behind all VICAR nodes (DOM order = z-order)
-      const updatedNodes = node.type === 'trustBoundary'
-        ? [node, ...get().nodes]
-        : [...get().nodes, node];
-      set({ nodes: updatedNodes });
+      set({ nodes: [...get().nodes, node] });
     },
 
     updateNode: (id, data) =>
