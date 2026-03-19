@@ -78,23 +78,3 @@ export const CONTROL_STATUS_CONFIG = {
   weak: { label: '⚠️ Weak', color: 'text-yellow-400' },
   missing: { label: '❌ Missing', color: 'text-red-400' },
 };
-
-// Auto-suggested edge labels based on source → target node type pairs
-export const RELATIONSHIP_LABELS = {
-  'threatActor->attackVector':  'uses',
-  'threatActor->attackSurface': 'targets',
-  'threatActor->threat':        'performs',
-  'attackVector->attackSurface':'exploits',
-  'attackVector->control':      'bypasses',
-  'attackVector->impact':       'leads to',
-  'attackVector->threat':       'constitutes',
-  'attackSurface->impact':      'leads to',
-  'attackSurface->control':     'protected by',
-  'control->attackVector':      'mitigates',
-  'control->threat':            'reduces',
-  'control->attackSurface':     'secures',
-  'impact->threat':             'ranks',
-  'threat->impact':             'causes',
-  'threat->control':            'remediated by',
-  default:                      'relates to',
-};

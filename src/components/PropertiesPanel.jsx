@@ -1,6 +1,6 @@
-import { Trash2, X, Sparkles } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import useStore from '../store/useStore';
-import { NODE_TYPES_CONFIG, RANKING_CONFIG, CONTROL_STATUS_CONFIG, RELATIONSHIP_LABELS } from '../nodes/nodeConfig';
+import { NODE_TYPES_CONFIG, RANKING_CONFIG, CONTROL_STATUS_CONFIG } from '../nodes/nodeConfig';
 
 export default function PropertiesPanel() {
   const selectedNode = useStore((s) => s.selectedNode);
@@ -36,10 +36,6 @@ export default function PropertiesPanel() {
     const targetNode = nodes.find((n) => n.id === liveEdge.target);
     const sourceConfig = sourceNode ? NODE_TYPES_CONFIG[sourceNode.type] : null;
     const targetConfig = targetNode ? NODE_TYPES_CONFIG[targetNode.type] : null;
-
-    const suggestedLabel =
-      RELATIONSHIP_LABELS[`${sourceNode?.type}->${targetNode?.type}`] ||
-      RELATIONSHIP_LABELS.default;
 
     const currentLabel = liveEdge.data?.label || '';
 
@@ -83,24 +79,12 @@ export default function PropertiesPanel() {
 
           {/* Label */}
           <Field label="Relationship Label">
-            <div className="flex gap-1.5">
-              <input
-                className="input flex-1"
-                value={currentLabel}
-                onChange={(e) => updateEdge(liveEdge.id, { label: e.target.value })}
-                placeholder="e.g. uses, exploits..."
-              />
-              <button
-                title={`Auto-suggest: "${suggestedLabel}"`}
-                onClick={() => updateEdge(liveEdge.id, { label: suggestedLabel })}
-                className="px-2 py-1 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-indigo-100 border border-indigo-500 transition-colors"
-              >
-                <Sparkles size={13} />
-              </button>
-            </div>
-            <p className="text-[10px] text-gray-500 mt-0.5">
-              ✨ Suggested: <span className="text-indigo-400 font-medium">"{suggestedLabel}"</span>
-            </p>
+            <input
+              className="input"
+              value={currentLabel}
+              onChange={(e) => updateEdge(liveEdge.id, { label: e.target.value })}
+              placeholder="e.g. uses, exploits..."
+            />
           </Field>
         </div>
 
