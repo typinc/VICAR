@@ -3,11 +3,13 @@ import { Upload, Trash2, FileJson, FileText, FileSpreadsheet, Undo2, Redo2, Layo
 import useStore from '../store/useStore';
 import { exportJSON, exportYAML, exportCSV, importModel } from '../utils/exportImport';
 import TemplatesModal from './TemplatesModal';
+import ConfirmModal from './ConfirmModal';
 
 export default function Header() {
   const { nodes, edges, loadModel, clearCanvas, undo, redo, history, future } = useStore();
   const fileRef = useRef(null);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
@@ -124,16 +126,24 @@ export default function Header() {
         <div className="h-5 w-px bg-gray-700" />
 
         <button
-          onClick={() => {
-            if (confirm('Clear the canvas? This cannot be undone.')) clearCanvas();
-          }}
+          onClick={() => setShowClearConfirm(true)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-900 hover:bg-red-800 text-red-200 text-xs font-semibold border border-red-700 transition-colors"
         >
           <Trash2 size={13} />
           Clear
         </button>
       </div>
+
       <TemplatesModal isOpen={showTemplates} onClose={() => setShowTemplates(false)} />
+
+      <ConfirmModal
+        isOpen={showClearConfirm}
+        title="Clear canvas"
+        message="This will remove all nodes and edges. Are you sure?"
+        confirmLabel="Clear"
+        onConfirm={() => { clearCanvas(); setShowClearConfirm(false); }}
+        onCancel={() => setShowClearConfirm(false)}
+      />
     </header>
   );
 }

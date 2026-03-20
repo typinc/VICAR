@@ -15,8 +15,8 @@ import { NODE_TYPES_CONFIG } from '../nodes/nodeConfig';
 
 const edgeTypes = { vicarEdge: VicarEdge };
 
-let nodeIdCounter = 1;
-const getId = () => `vicar_${Date.now()}_${nodeIdCounter++}`;
+// Use crypto.randomUUID() — no module-level counter that resets on HMR.
+const getId = () => crypto.randomUUID();
 
 const MINIMAP_COLORS = {
   threatActor: '#dc2626',
@@ -37,11 +37,15 @@ export default function Canvas() {
     addNode,
     setSelectedNode,
     setSelectedEdge,
-    saveHistoryForDrag,
+    pushSnapshot,
   } = useStore();
 
   const reactFlowWrapper = useRef(null);
   const { screenToFlowPosition } = useReactFlow();
+
+  // Stores a deep clone of state just before a drag begins.
+  // Pushed to history only if the node actually moved (drag-stop comparison).
+  const preDragRef = useRef(null);
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -87,10 +91,33 @@ export default function Canvas() {
     [setSelectedEdge]
   );
 
-  // Save history snapshot before a drag so undo restores pre-drag positions
+  // Capture a snapshot of the entire graph before the drag begins.
+  // We use useStore.getState() (not the hook) to read current values
+  // from inside a callback without stale-closure issues.
   const onNodeDragStart = useCallback(() => {
-    saveHistoryForDrag();
-  }, [saveHistoryForDrag]);
+    const { nodes: n, edges: e } = useStore.getState();
+    preDragRef.current = structuredClone({ nodes: n, edges: e });
+  }, []);
+
+  // After drag ends, push the pre-drag snapshot to history only if the
+  // node's position actually changed. This avoids polluting history with
+  // no-op drags (click-without-move).
+  const onNodeDragStop = useCallback(
+    (_evt, node) => {
+      const pre = preDragRef.current;
+      preDragRef.current = null;
+      if (!pre) return;
+
+      const preNode = pre.nodes.find((n) => n.id === node.id);
+      const moved =
+        preNode &&
+        (Math.round(preNode.position.x) !== Math.round(node.position.x) ||
+          Math.round(preNode.position.y) !== Math.round(node.position.y));
+
+      if (moved) pushSnapshot(pre);
+    },
+    [pushSnapshot]
+  );
 
   return (
     <div ref={reactFlowWrapper} className="flex-1 bg-gray-950">
@@ -105,6 +132,7 @@ export default function Canvas() {
         onPaneClick={onPaneClick}
         onEdgeClick={onEdgeClick}
         onNodeDragStart={onNodeDragStart}
+        onNodeDragStop={onNodeDragStop}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{

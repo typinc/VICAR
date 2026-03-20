@@ -3,10 +3,9 @@ import { addEdge, applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 
 const MAX_HISTORY = 50;
 
-const snapshot = (nodes, edges) => ({
-  nodes: nodes.map((n) => ({ ...n, data: { ...n.data } })),
-  edges: edges.map((e) => ({ ...e, data: { ...e.data } })),
-});
+// Deep-clone nodes + edges so history entries never share object references.
+// structuredClone handles nested objects/arrays correctly — no more stale undo state.
+const snapshot = (nodes, edges) => structuredClone({ nodes, edges });
 
 const useStore = create((set, get) => {
   const saveHistory = () => {
@@ -33,6 +32,12 @@ const useStore = create((set, get) => {
       set({ edges: applyEdgeChanges(changes, get().edges) }),
 
     onConnect: (connection) => {
+      const { edges } = get();
+      // Guard: skip duplicate edges between the same pair of nodes
+      const isDuplicate = edges.some(
+        (e) => e.source === connection.source && e.target === connection.target
+      );
+      if (isDuplicate) return;
       saveHistory();
       set({
         edges: addEdge(
@@ -55,14 +60,28 @@ const useStore = create((set, get) => {
         ),
       }),
 
-    saveHistoryForDrag: () => saveHistory(),
+    // Accepts an externally-captured pre-drag snapshot.
+    // Canvas calls this after drag-stop, only when the node actually moved.
+    pushSnapshot: (snap) => {
+      const { history } = get();
+      set({
+        history: [...history.slice(-(MAX_HISTORY - 1)), snap],
+        future: [],
+      });
+    },
 
     deleteNode: (id) => {
       saveHistory();
+      const { selectedNode, selectedEdge } = get();
       set({
         nodes: get().nodes.filter((n) => n.id !== id),
         edges: get().edges.filter((e) => e.source !== id && e.target !== id),
-        selectedNode: get().selectedNode?.id === id ? null : get().selectedNode,
+        selectedNode: selectedNode?.id === id ? null : selectedNode,
+        // Also clear selectedEdge if it was attached to the deleted node
+        selectedEdge:
+          selectedEdge?.source === id || selectedEdge?.target === id
+            ? null
+            : selectedEdge,
       });
     },
 

@@ -103,29 +103,88 @@ export function exportCSV(nodes, edges) {
     ]);
   });
 
-  const csv = rows.map((r) => r.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  // Sanitize: strip line-breaks (breaks CSV rows in Excel/Sheets) and escape quotes
+  const sanitizeCell = (cell) =>
+    String(cell)
+      .replace(/\r?\n|\r/g, ' ')  // line-breaks → space
+      .replace(/"/g, '""');        // escape double-quotes
+
+  const csv = rows
+    .map((r) => r.map((cell) => `"${sanitizeCell(cell)}"`).join(','))
+    .join('\n');
+
   const blob = new Blob([csv], { type: 'text/csv' });
   downloadBlob(blob, 'threat-model-report.csv');
 }
 
 // ── Import ────────────────────────────────────────────────────────────────────
+const ALLOWED_NODE_TYPES = new Set([
+  'threatActor', 'attackVector', 'attackSurface',
+  'control', 'impact', 'threat', 'trustBoundary',
+]);
+
 export function importModel(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+
+    reader.onerror = () => reject(new Error('Failed to read file.'));
+
     reader.onload = (e) => {
       try {
         let model;
         if (file.name.endsWith('.yaml') || file.name.endsWith('.yml')) {
-          model = yaml.load(e.target.result);
+          // JSON_SCHEMA prevents unsafe YAML types (!!js/function, !!js/regexp, etc.)
+          model = yaml.load(e.target.result, { schema: yaml.JSON_SCHEMA });
         } else {
           model = JSON.parse(e.target.result);
         }
-        if (!model.nodes || !model.edges) throw new Error('Invalid VICAR model file.');
+
+        // ── Structural validation ──────────────────────────────────────────
+        if (!model || typeof model !== 'object') {
+          throw new Error('Invalid model: expected a JSON/YAML object.');
+        }
+        if (!Array.isArray(model.nodes)) {
+          throw new Error('Invalid model: "nodes" must be an array.');
+        }
+        if (!Array.isArray(model.edges)) {
+          throw new Error('Invalid model: "edges" must be an array.');
+        }
+
+        // ── Node validation ────────────────────────────────────────────────
+        const nodeIds = new Set();
+        for (const node of model.nodes) {
+          if (typeof node.id !== 'string' || !node.id) {
+            throw new Error('A node is missing a valid "id".');
+          }
+          if (nodeIds.has(node.id)) {
+            throw new Error(`Duplicate node id: "${node.id}".`);
+          }
+          nodeIds.add(node.id);
+
+          if (!ALLOWED_NODE_TYPES.has(node.type)) {
+            throw new Error(`Unknown node type: "${node.type}".`);
+          }
+          if (!node.data || typeof node.data !== 'object') {
+            throw new Error(`Node "${node.id}" is missing a "data" object.`);
+          }
+        }
+
+        // ── Edge validation ────────────────────────────────────────────────
+        for (const edge of model.edges) {
+          if (typeof edge.source !== 'string' || !nodeIds.has(edge.source)) {
+            throw new Error(`Edge "${edge.id ?? '?'}" references an unknown source node.`);
+          }
+          if (typeof edge.target !== 'string' || !nodeIds.has(edge.target)) {
+            throw new Error(`Edge "${edge.id ?? '?'}" references an unknown target node.`);
+          }
+        }
+
         resolve({ nodes: model.nodes, edges: model.edges });
       } catch (err) {
         reject(err);
       }
     };
+
     reader.readAsText(file);
   });
 }
