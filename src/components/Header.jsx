@@ -1,11 +1,13 @@
-import { useRef } from 'react';
-import { Download, Upload, Trash2, FileJson, FileText, FileSpreadsheet, Undo2, Redo2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Upload, Trash2, FileJson, FileText, FileSpreadsheet, Undo2, Redo2, LayoutTemplate } from 'lucide-react';
 import useStore from '../store/useStore';
 import { exportJSON, exportYAML, exportCSV, importModel } from '../utils/exportImport';
+import TemplatesModal from './TemplatesModal';
 
 export default function Header() {
   const { nodes, edges, loadModel, clearCanvas, undo, redo, history, future } = useStore();
   const fileRef = useRef(null);
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
@@ -75,6 +77,17 @@ export default function Header() {
 
       {/* Actions */}
       <div className="flex items-center gap-2">
+        {/* Templates */}
+        <button
+          onClick={() => setShowTemplates(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-800 hover:bg-indigo-700 text-indigo-200 text-xs font-semibold border border-indigo-600 transition-colors"
+        >
+          <LayoutTemplate size={13} />
+          Templates
+        </button>
+
+        <div className="h-5 w-px bg-gray-700" />
+
         <button
           onClick={() => exportJSON(nodes, edges)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold border border-gray-700 transition-colors"
@@ -120,6 +133,7 @@ export default function Header() {
           Clear
         </button>
       </div>
+      <TemplatesModal isOpen={showTemplates} onClose={() => setShowTemplates(false)} />
     </header>
   );
 }
