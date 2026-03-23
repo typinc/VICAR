@@ -41,7 +41,7 @@ const useStore = create((set, get) => {
       saveHistory();
       set({
         edges: addEdge(
-          { ...connection, type: 'vicarEdge', animated: false, data: { label: '' } },
+          { ...connection, type: 'vicarEdge', animated: false, data: { label: '', direction: 'forward' } },
           get().edges
         ),
       });

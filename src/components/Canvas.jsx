@@ -137,7 +137,6 @@ export default function Canvas() {
         edgeTypes={edgeTypes}
         defaultEdgeOptions={{
           type: 'vicarEdge',
-          markerEnd: { type: 'arrowclosed', color: '#6b7280' },
         }}
         fitView
         fitViewOptions={{ padding: 0.2 }}

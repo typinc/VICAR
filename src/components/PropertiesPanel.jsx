@@ -77,6 +77,34 @@ export default function PropertiesPanel() {
             </div>
           </Field>
 
+          {/* Direction */}
+          <Field label="Direction">
+            <div className="grid grid-cols-2 gap-1">
+              {[
+                { value: 'forward',       icon: '→', label: 'Forward' },
+                { value: 'backward',      icon: '←', label: 'Backward' },
+                { value: 'bidirectional', icon: '↔', label: 'Both' },
+                { value: 'none',          icon: '—', label: 'None' },
+              ].map(({ value, icon, label }) => {
+                const active = (liveEdge.data?.direction ?? 'forward') === value;
+                return (
+                  <button
+                    key={value}
+                    onClick={() => updateEdge(liveEdge.id, { direction: value })}
+                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                      active
+                        ? 'bg-indigo-700 border-indigo-500 text-white'
+                        : 'bg-gray-800 border-gray-600 text-gray-400 hover:text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="text-sm">{icon}</span>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </Field>
+
           {/* Label */}
           <Field label="Relationship Label">
             <input
